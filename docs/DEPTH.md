@@ -27,6 +27,11 @@
 | TRAP-14 | 业务键冲突 | 静默采信错误值 | 保留首条并隔离冲突 | `app/modules/m1_intake/rules.py` | `tests/test_intake.py::test_intake_conflicting_key` |
 | TRAP-15 | 单位混合 | 静默采信错误值 | 浓度单位归一 | `app/modules/m2_internal/rules.py` | `tests/test_internal.py::test_internal_units` |
 | TRAP-19 | 多个质控标记 | 静默采信错误值 | 显式优先级 | `app/modules/m6_quality/rules.py` | `tests/test_quality.py::test_quality_priority` |
+| TRAP-20 | 后段标样未到 | 借用相邻或跨批标样，浓度与检出限失真 | 只认同批本项前后标样；未夹持标记并挂起 | `app/modules/m6_quality/rules.py` | `tests/test_bracketing.py` |
+| TRAP-21 | 未夹持冒充已校正 | 交接时把参考值当已校正放行 | 检出限无效、不可放行；整批通过被拒 | `app/modules/m7_review/rules.py` | `tests/test_handover.py::test_pending_batch_blocks_whole_review` |
+| TRAP-22 | 补测重试重复计数 | 同一补测多次提交产生多版 | 按补测摘要幂等，链内复用 | `app/batches.py` | `tests/test_handover.py::test_retry_of_earlier_retest_reuses_anywhere_in_chain` |
+| TRAP-23 | 补测失败覆盖旧版 | 坏补测写库后无法恢复 | 先计算后落库，失败保留旧版 | `app/batches.py` | `tests/test_handover.py::test_failed_retest_keeps_old_version` |
+| TRAP-24 | 复核覆盖历史 | 后一次结论抹掉前一次 | 追加不可变 review_events | `app/store.py` | `tests/test_handover.py::test_review_history_is_append_only` |
 
 ## 对账规则
 

@@ -6,10 +6,15 @@ def corrected(response,curve,blank):
     return (response-curve["intercept"])/curve["slope"]-blank
 
 def apply(ctx):
-    blanks={}
+    blanks={};blank_points={}
     for r in ctx["normalized"]:
         key=(r["batch"],r["analyte"]);c=ctx["curves"].get(key)
-        if c and r["kind"]=="blank":blanks.setdefault(key,[]).append((r["response"]-c["intercept"])/c["slope"])
+        if c and r["kind"]=="blank":
+            conc=(r["response"]-c["intercept"])/c["slope"]
+            blanks.setdefault(key,[]).append(conc)
+            blank_points.setdefault(key,[]).append({"line":r["line"],"sample_id":r["sample_id"],"concentration":conc})
+    for points in blank_points.values():points.sort(key=lambda p:p["line"])
+    ctx["blank_points"]=blank_points
     ctx["blanks"]={k:median(v) for k,v in blanks.items()};out=[]
     for r in ctx["normalized"]:
         if r["kind"] not in {"sample","control"}:continue

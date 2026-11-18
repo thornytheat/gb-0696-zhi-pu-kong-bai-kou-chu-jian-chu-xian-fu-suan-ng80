@@ -15,11 +15,15 @@ def fit(points):
     return {"slope":slope,"intercept":intercept,"r2":Decimal(1)-residual/total if total else Decimal(0),"max_response":max(y for x,y in points)}
 
 def apply(ctx):
-    groups={};curves={};errors=[]
+    groups={};curves={};errors=[];standards={}
     for r in ctx["normalized"]:
-        if r["kind"]=="standard":groups.setdefault((r["batch"],r["analyte"]),[]).append((r["level_value"],r["response"]))
+        if r["kind"]=="standard":
+            key=(r["batch"],r["analyte"])
+            groups.setdefault(key,[]).append((r["level_value"],r["response"]))
+            standards.setdefault(key,[]).append(r)
     for key,points in groups.items():
         try:curves[key]=fit(points)
         except BusinessError as e:errors.append({"batch":key[0],"analyte":key[1],"status":e.code})
-    ctx["curves"]=curves;ctx["curve_errors"]=errors
+    for rows in standards.values():rows.sort(key=lambda r:r["line"])
+    ctx["curves"]=curves;ctx["curve_errors"]=errors;ctx["standards"]=standards
     return report([dict(batch=k[0],analyte=k[1],**v) for k,v in curves.items()]+errors,标曲=len(curves),失败=len(errors))
